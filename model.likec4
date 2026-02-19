@@ -1,0 +1,95 @@
+model {
+    customer = actor 'Customer' {
+        description 'Marketplace customer'
+    }
+    seller = actor 'Seller' {
+        description 'Marketplace seller'
+    }
+    marketplace = system 'Marketplace' {
+        description 'Online platform'
+        style {
+            shape browser
+        }
+
+        webapp = container 'Web Application' {
+            description 'Web page in browser'
+            style {
+                shape browser
+            }
+        }
+        gateway = container 'API Gateway' {
+            description 'Entry point: authentication, orders, catalogs, sellers info'
+            
+        }
+        user = container 'User service' {
+            description 'Authentication, user info'
+        }
+        catalog = container 'Catalog service' {
+            description 'Product cards, shop info'
+        }
+        personalization = container 'Personalization service' {
+            description 'Personalized product catalog'
+        }
+        order = container 'Order service' {
+            description 'Order list, order info'
+        }
+        notifications = container 'Notifications service' {
+            description 'Email notifications with order status'
+        }
+
+        userDb = database 'User DataBase' {
+            description 'User info'
+            technology 'PostgreSQL'
+        }
+        catalogDb = database 'Catalog DataBase' {
+            description 'Products list'
+            technology 'PostgreSQL'
+        }
+        orderDb = database 'Order DataBase' {
+            description 'User orders'
+            technology 'PostgreSQL'
+        }
+        personalizationDb = database 'Personalization DataBase' {
+            description 'Personalized user catalogs'
+            technology 'PostgreSQL'
+        }
+        rabbit = queue 'RabbitMQ' {
+            description 'Message broker for async communication'
+            technology 'RabbitMQ'
+        }
+        payment = container 'Payment Service' {
+            description 'Payment status'
+        }
+    
+    }
+    email = external 'Email Provider' {
+        description 'External notification delivery service'
+    }
+    payment = external 'Payment Provider' {
+        description 'External payment service'
+    }
+
+    // Action relationships
+    customer -> marketplace.webapp 'Browses catalog, places orders'
+    seller -> marketplace.webapp 'Manages catalogs and orders'
+
+    // Container relationships
+    marketplace.webapp -> marketplace.gateway 'REST API'
+    marketplace.gateway -> marketplace.user 'Authentication'
+    marketplace.gateway -> marketplace.catalog 'Managing the list of products'
+    marketplace.gateway -> marketplace.order 'Managing the order list'
+    marketplace.gateway -> marketplace.personalization 'Managing personalized catalog'
+    marketplace.order -> marketplace.payment 'Sending payment info'
+    marketplace.payment -> payment 'Order payment'
+    marketplace.user -> marketplace.userDb 'Getting user info by user id'
+    marketplace.catalog -> marketplace.catalogDb 'Getting products list by user id'
+    marketplace.personalization -> marketplace.personalizationDb 'Getting personalized catalog by user id'
+    marketplace.order -> marketplace.orderDb 'Getting order list by user id'
+
+    // Async relationships
+    marketplace.order -[async]-> marketplace.rabbit 'Publishing order events'
+    marketplace.rabbit -[async]-> marketplace.notifications 'Delivering order events'
+    marketplace.notifications -[async]-> email 'Sending emails'
+    marketplace.personalization -[async]-> marketplace.catalog 'Getting products updates'
+
+}
