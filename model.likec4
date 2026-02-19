@@ -1,0 +1,14 @@
+model {
+    customer = actor 'Customer' {
+        description 'Marketplace customer'
+    }
+    seller = actor 'Seller' {
+        description 'Marketplace seller'
+    }
+    marketplace = system 'Marketplace' {
+        description 'Online platform'
+        style {
+            shape browser
+        }
+    }
+}
