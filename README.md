@@ -14,9 +14,9 @@ docker run --rm \
 
 **Запуск сервиса из корневой директории:**
 ```
-cd seller-service
-docker build -t seller-service .
-docker run --rm -p 8080:8080 seller-service
+cd catalog-service
+docker build -t catalog-service .
+docker run --rm -p 8080:8080 catalog-service
 ```
 **Запрос к health-check endpoint:**
 ```
