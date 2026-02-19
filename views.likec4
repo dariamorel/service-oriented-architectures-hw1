@@ -3,4 +3,8 @@ views {
         title 'System landscape'
         include *
     }
+    view containers of marketplace {
+        title 'Marketplace containers'
+        include *   
+    }
 }

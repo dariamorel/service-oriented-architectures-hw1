@@ -10,5 +10,81 @@ model {
         style {
             shape browser
         }
+
+        webapp = container 'Web Application' {
+            description 'Web page in browser'
+            style {
+                shape browser
+            }
+        }
+        gateway = container 'API Gateway' {
+            description 'Entry point: authentication, orders, catalogs, sellers info'
+            
+        }
+        user = container 'User service' {
+            description 'Authentication, user info'
+        }
+        seller = container 'Seller service' {
+            description 'Product cards, shop info'
+        }
+        catalog = container 'Catalog service' {
+            description 'Personalized product catalog'
+        }
+        order = container 'Order service' {
+            description 'Order list, order info'
+        }
+        notifications = container 'Notifications service' {
+            description 'Email notifications with order status'
+        }
+        userDb = database 'User DataBase' {
+            description 'User info'
+            technology 'PostgreSQL'
+        }
+        sellerDb = database 'Seller DataBase' {
+            description 'Products list'
+            technology 'PostgreSQL'
+        }
+        orderDb = database 'Order DataBase' {
+            description 'User orders'
+            technology 'PostgreSQL'
+        }
+        catalogDb = database 'Catalog DataBase' {
+            description 'Personalized user catalogs'
+            technology 'PostgreSQL'
+        }
+        rabbit = queue 'RabbitMQ' {
+            description 'Message broker for async communication'
+            technology 'RabbitMQ'
+        }
+    
     }
+    email = external 'Email Provider' {
+        description 'External notification delivery service'
+    }
+    payment = external 'Payment Provider' {
+        description 'External payment service'
+    }
+
+    // Action relationships
+    customer -> marketplace.webapp 'Browses catalog, places orders'
+    seller -> marketplace.webapp 'Manages catalogs and orders'
+
+    // Container relationships
+    marketplace.webapp -> marketplace.gateway 'REST API'
+    marketplace.gateway -> marketplace.user 'Authentication'
+    marketplace.gateway -> marketplace.seller 'Managing the list of products'
+    marketplace.gateway -> marketplace.order 'Managing the order list'
+    marketplace.gateway -> marketplace.catalog 'Managing personalized catalog'
+    marketplace.user -> marketplace.userDb 'Getting user info by user id'
+    marketplace.seller -> marketplace.sellerDb 'Getting products list by user id'
+    marketplace.catalog -> marketplace.catalogDb 'Getting personalized catalog by user id'
+    marketplace.order -> marketplace.orderDb 'Getting order list by user id'
+    marketplace.order -> payment 'Sending payment info'
+
+    // Async relationships
+    marketplace.order -[async]-> marketplace.rabbit 'Publishing order events'
+    marketplace.rabbit -[async]-> marketplace.notifications 'Delivering order events'
+    marketplace.notifications -[async]-> email 'Sending emails'
+    marketplace.catalog -[async]-> marketplace.seller 'Getting products updates'
+
 }
